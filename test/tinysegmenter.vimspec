@@ -1,0 +1,122 @@
+Describe tinysegmenter functions
+
+    Describe segment method
+        It should return empty list
+            let ts = tinysegmenter#new()
+            let items = ts.segment('')
+            Assert type(items) == type([])
+            Assert len(items) == 0
+        End
+
+        It should do basic segmentation
+            let ts = tinysegmenter#new()
+            let items = ts.segment('私の名前は中野です')
+            Assert len(items) == 6
+            Assert items[0] == '私'
+            Assert items[1] == 'の'
+            Assert items[2] == '名前'
+            Assert items[3] == 'は'
+            Assert items[4] == '中野'
+            Assert items[5] == 'です'
+        End
+
+        It should handle numbers
+            let ts = tinysegmenter#new()
+            let items = ts.segment('2023年12月31日')
+            Assert len(items) == 6
+            Assert items[0] == '2023'
+            Assert items[1] == '年'
+            Assert items[2] == '12'
+            Assert items[3] == '月'
+            Assert items[4] == '31'
+            Assert items[5] == '日'
+        End
+
+        It should handle consecutive numbers
+            let ts = tinysegmenter#new()
+            let items = ts.segment('123456')
+            Assert len(items) == 1
+            Assert items[0] == '123456'
+        End
+
+        It should handle katakana
+            let ts = tinysegmenter#new()
+            let items = ts.segment('アリババと40人の盗賊')
+            Assert len(items) == 6
+            Assert items[0] == 'アリババ'
+            Assert items[1] == 'と'
+            Assert items[2] == '40'
+            Assert items[3] == '人'
+            Assert items[4] == 'の'
+            Assert items[5] == '盗賊'
+        End
+
+        It should preserve words in preserve_list
+            let ts = tinysegmenter#new()
+            let ts.preserve_list = ['万博']
+            let items = ts.segment('2025年大阪万博')
+            Assert len(items) == 4
+            Assert items[0] == '2025'
+            Assert items[1] == '年'
+            Assert items[2] == '大阪'
+            Assert items[3] == '万博'
+        End
+
+        It should preserve tokens
+            let ts = tinysegmenter#new()
+            let ts.preserve_tokens = 1
+            let items = ts.segment('URLはhttps://example.comです')
+            Assert len(items) == 4
+            Assert items[0] == 'URL'
+            Assert items[1] == 'は'
+            Assert items[2] == 'https://example.com'
+            Assert items[3] == 'です'
+        End
+
+        It should handle emoji
+            let ts = tinysegmenter#new()
+            let items = ts.segment('ことしは🤔2024年')
+            Assert len(items) == 5
+            Assert items[0] == 'ことし'
+            Assert items[1] == 'は'
+            Assert items[2] == '🤔'
+            Assert items[3] == '2024'
+            Assert items[4] == '年'
+        End
+
+        It should support multiple instances
+            let ts1 = tinysegmenter#new()
+            let ts1.preserve_list = ['東京都']
+            let items1 = ts1.segment('東京都に行きます')
+            let ts2 = tinysegmenter#new()
+            let ts2.preserve_list = ['大阪府']
+            let items2 = ts2.segment('大阪府に行きます')
+            Assert len(items1) == 4
+            Assert items1[0] == '東京都'
+            Assert len(items2) == 4
+            Assert items2[0] == '大阪府'
+        End
+    End
+
+    Describe tinysegmenter#segment function
+        It should segment with preserve_list
+            let items = tinysegmenter#segment('2025年大阪万博', ['万博'], 0)
+            Assert len(items) == 4
+            Assert items[3] == '万博'
+        End
+
+        It should segment with preserve_tokens
+            let items = tinysegmenter#segment('URLはhttps://example.comです', 1)
+            Assert len(items) == 4
+            Assert items[2] == 'https://example.com'
+        End
+
+        It should segment with both preserve_list and preserve_tokens
+            let items = tinysegmenter#segment('URLはhttps://example.comです', 1, ['URL'])
+            Assert len(items) == 4
+            Assert items[0] == 'URL'
+            Assert items[2] == 'https://example.com'
+        End
+    End
+
+End
